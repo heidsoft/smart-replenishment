@@ -1,26 +1,41 @@
-import { useState, useEffect } from 'react';
-import { Card, Button, Empty } from 'antd-mobile';
+import { useState, useEffect, useRef } from 'react';
+import { Card, Empty, DotLoading, Toast } from 'antd-mobile';
 import { aiApi } from '../api';
+import './AI.css';
 
 export default function AI() {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [messages, setMessages] = useState<{ role: string; content: string }[]>([
-    { role: 'assistant', content: '您好！我是智能补货助手。我可以帮您：\n• 分析库存状态\n• 提供补货建议\n• 回答销售问题\n• 查看供应商信息\n\n有什么可以帮您的？' }
-  ]);
+  const [messages, setMessages] = useState<{ role: string; content: string; time?: string }[]>([]);
   const [input, setInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'suggestions' | 'chat'>('suggestions');
+  const [useLLM, setUseLLM] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadSuggestions();
+    // 初始化欢迎消息
+    setMessages([{
+      role: 'assistant',
+      content: '👋 你好！我是智能补货助手「小补」\n\n我可以帮你：\n📦 分析库存状态\n💰 查看销售数据\n🤖 提供智能建议\n\n有什么想问的？',
+      time: formatTime(new Date())
+    }]);
   }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const loadSuggestions = async () => {
     setLoading(true);
     try {
       const data: any = await aiApi.getSuggestions();
-      setSuggestions(data);
+      setSuggestions(data || []);
     } catch (error) {
       console.error('Failed to load suggestions:', error);
     } finally {
@@ -29,131 +44,216 @@ export default function AI() {
   };
 
   const handleChat = async () => {
-    if (!input.trim()) return;
-    const userMessage = { role: 'user', content: input };
-    setMessages([...messages, userMessage]);
+    if (!input.trim() || chatLoading) return;
+
+    const userMsg = { role: 'user', content: input.trim(), time: formatTime(new Date()) };
+    setMessages(prev => [...prev, userMsg]);
     setInput('');
     setChatLoading(true);
 
     try {
-      const res: any = await aiApi.chat(input);
-      setMessages((prev) => [...prev, { role: 'assistant', content: res.reply }]);
-    } catch (error) {
-      setMessages((prev) => [...prev, { role: 'assistant', content: '抱歉，服务出错，请稍后再试。' }]);
+      const res: any = await aiApi.chat(input, useLLM);
+      const assistantMsg = {
+        role: 'assistant',
+        content: res.reply,
+        time: formatTime(new Date())
+      };
+      setMessages(prev => [...prev, assistantMsg]);
+    } catch (error: any) {
+      Toast.show('发送失败，请稍后重试');
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: '抱歉，服务出错了。请稍后再试。',
+        time: formatTime(new Date())
+      }]);
     } finally {
       setChatLoading(false);
     }
   };
 
-  const getUrgencyColor = (urgency: string) => {
-    const map: any = { high: '#ff4d4f', medium: '#faad14', low: '#52c41a' };
-    return map[urgency] || '#999';
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleChat();
+    }
   };
 
-  const getUrgencyText = (urgency: string) => {
-    const map: any = { high: '紧急', medium: '中等', low: '可以' };
-    return map[urgency] || urgency;
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
   };
+
+  const getUrgencyConfig = (urgency: string) => {
+    const map: any = {
+      high: { color: '#ff4d4f', bg: '#fff2f0', text: '紧急', icon: '🔴' },
+      medium: { color: '#fa8c16', bg: '#fff7e6', text: '备货', icon: '🟡' },
+      low: { color: '#52c41a', bg: '#f6ffed', text: '充足', icon: '🟢' }
+    };
+    return map[urgency] || map.low;
+  };
+
+  const quickQuestions = [
+    '库存还够吗？',
+    '今天卖了多少？',
+    '哪些需要补货？',
+    '今日收入多少？',
+  ];
 
   return (
-    <div style={{ height: 'calc(100vh - 100px)', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', borderBottom: '1px solid #eee' }}>
+    <div className="ai-page">
+      {/* Tab Bar */}
+      <div className="ai-tabs">
         <div
+          className={`ai-tab ${activeTab === 'suggestions' ? 'active' : ''}`}
           onClick={() => setActiveTab('suggestions')}
-          style={{ flex: 1, textAlign: 'center', padding: '12px', borderBottom: activeTab === 'suggestions' ? '2px solid #1677ff' : 'none', color: activeTab === 'suggestions' ? '#1677ff' : '#999' }}
         >
-          补货建议
+          📊 补货建议
         </div>
         <div
+          className={`ai-tab ${activeTab === 'chat' ? 'active' : ''}`}
           onClick={() => setActiveTab('chat')}
-          style={{ flex: 1, textAlign: 'center', padding: '12px', borderBottom: activeTab === 'chat' ? '2px solid #1677ff' : 'none', color: activeTab === 'chat' ? '#1677ff' : '#999' }}
         >
-          AI 助手
+          💬 AI 助手
         </div>
       </div>
 
-      {activeTab === 'suggestions' ? (
-        <div style={{ flex: 1, overflow: 'auto', padding: '12px' }}>
+      {/* Suggestions Tab */}
+      {activeTab === 'suggestions' && (
+        <div className="suggestions-container">
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '40px' }}>加载中...</div>
+            <div className="loading-state">
+              <DotLoading />
+              <span>加载中...</span>
+            </div>
           ) : suggestions.length === 0 ? (
-            <Empty description="暂无补货建议，库存状态良好 ✅" />
+            <Empty description="库存状态良好，无需补货 ✅" />
           ) : (
-            suggestions.map((item, index) => (
-              <Card key={index} style={{ marginBottom: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                  <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{item.productName}</div>
-                  <div style={{ backgroundColor: getUrgencyColor(item.urgency), color: '#fff', padding: '2px 8px', borderRadius: '4px', fontSize: '10px' }}>
-                    {getUrgencyText(item.urgency)}
-                  </div>
-                </div>
+            <div className="suggestions-list">
+              <div className="suggestions-header">
+                <span>共 {suggestions.length} 个商品需要关注</span>
+              </div>
+              {suggestions.map((item, index) => {
+                const config = getUrgencyConfig(item.urgency);
+                return (
+                  <Card key={index} className="suggestion-card">
+                    <div className="suggestion-header">
+                      <div className="suggestion-title">
+                        <span className="urgency-icon">{config.icon}</span>
+                        <span className="product-name">{item.productName}</span>
+                      </div>
+                      <div
+                        className="urgency-badge"
+                        style={{ background: config.bg, color: config.color }}
+                      >
+                        {config.text}
+                      </div>
+                    </div>
 
-                <div style={{ fontSize: '14px', color: '#666', marginBottom: '8px' }}>
-                  <div>当前库存: <span style={{ color: '#ff4d4f' }}>{item.currentStock}</span> (最低: {item.minStock})</div>
-                  <div>日均销量: {item.avgDailySales}</div>
-                  <div>可维持: {item.daysRemaining} 天</div>
-                </div>
+                    <div className="suggestion-stats">
+                      <div className="stat-item">
+                        <span className="stat-label">当前库存</span>
+                        <span className="stat-value danger">{item.currentStock}</span>
+                      </div>
+                      <div className="stat-item">
+                        <span className="stat-label">最低库存</span>
+                        <span className="stat-value">{item.minStock}</span>
+                      </div>
+                      <div className="stat-item">
+                        <span className="stat-label">可维持</span>
+                        <span className="stat-value">{item.daysRemaining}天</span>
+                      </div>
+                    </div>
 
-                <div style={{ background: '#f5f5f5', padding: '8px', borderRadius: '4px', marginBottom: '8px' }}>
-                  <div style={{ fontSize: '12px', color: '#999' }}>建议</div>
-                  <div style={{ fontSize: '14px' }}>建议补货 <span style={{ color: '#1677ff', fontWeight: 'bold' }}>{item.suggestedQty}</span> 件</div>
-                </div>
+                    <div className="suggestion-action">
+                      <div className="action-qty">
+                        建议补货 <strong>{item.suggestedQty}</strong> 件
+                      </div>
+                      <div className="action-reason">{item.reason}</div>
+                    </div>
 
-                <div style={{ fontSize: '12px', color: '#666', fontStyle: 'italic' }}>{item.reason}</div>
-
-                <div style={{ marginTop: '8px', fontSize: '12px', color: '#999' }}>
-                  预测信心: {(item.confidence * 100).toFixed(0)}%
-                </div>
-              </Card>
-            ))
+                    <div className="suggestion-footer">
+                      <span className="confidence">AI 信心度：{(item.confidence * 100).toFixed(0)}%</span>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
           )}
         </div>
-      ) : (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ flex: 1, overflow: 'auto', padding: '12px' }}>
+      )}
+
+      {/* Chat Tab */}
+      {activeTab === 'chat' && (
+        <div className="chat-container">
+          {/* LLM Toggle */}
+          <div className="llm-toggle">
+            <span className={`toggle-label ${useLLM ? 'active' : ''}`}>AI 增强模式</span>
+            <div
+              className={`toggle-switch ${useLLM ? 'on' : ''}`}
+              onClick={() => setUseLLM(!useLLM)}
+            >
+              <div className="toggle-knob" />
+            </div>
+          </div>
+
+          {/* Messages */}
+          <div className="messages-container">
             {messages.map((msg, index) => (
-              <div
-                key={index}
-                style={{
-                  display: 'flex',
-                  justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                  marginBottom: '12px'
-                }}
-              >
-                <div
-                  style={{
-                    maxWidth: '75%',
-                    padding: '10px 14px',
-                    borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                    background: msg.role === 'user' ? '#1677ff' : '#f5f5f5',
-                    color: msg.role === 'user' ? '#fff' : '#333',
-                    whiteSpace: 'pre-wrap'
-                  }}
-                >
-                  {msg.content}
+              <div key={index} className={`message ${msg.role}`}>
+                <div className="message-avatar">
+                  {msg.role === 'assistant' ? '🤖' : '👤'}
+                </div>
+                <div className="message-content">
+                  <div className="message-bubble">
+                    {msg.content}
+                  </div>
+                  {msg.time && (
+                    <div className="message-time">{msg.time}</div>
+                  )}
                 </div>
               </div>
             ))}
             {chatLoading && (
-              <div style={{ textAlign: 'center', padding: '12px', color: '#999' }}>
-                AI 思考中...
+              <div className="message assistant">
+                <div className="message-avatar">🤖</div>
+                <div className="message-content">
+                  <div className="message-bubble typing">
+                    <DotLoading />
+                  </div>
+                </div>
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
 
-          <div style={{ padding: '12px', borderTop: '1px solid #eee', background: '#fff' }}>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleChat()}
-                placeholder="输入您的问题..."
-                style={{ flex: 1, padding: '10px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '16px' }}
-              />
-              <Button color="primary" onClick={handleChat} disabled={chatLoading}>
-                发送
-              </Button>
-            </div>
+          {/* Quick Questions */}
+          <div className="quick-questions">
+            {quickQuestions.map((q, i) => (
+              <div
+                key={i}
+                className="quick-question"
+                onClick={() => setInput(q)}
+              >
+                {q}
+              </div>
+            ))}
+          </div>
+
+          {/* Input */}
+          <div className="chat-input-area">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="输入问题..."
+              rows={1}
+            />
+            <button
+              className="send-btn"
+              onClick={handleChat}
+              disabled={!input.trim() || chatLoading}
+            >
+              {chatLoading ? <DotLoading /> : '➤'}
+            </button>
           </div>
         </div>
       )}

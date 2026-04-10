@@ -80,7 +80,7 @@ export const salesApi = {
 // AI
 export const aiApi = {
   getSuggestions: () => api.get('/ai/suggestions'),
-  chat: (message: string) => api.post('/ai/chat', { message }),
+  chat: (message: string, useLLM?: boolean) => api.post('/ai/chat', { message, use_llm: useLLM }),
 };
 
 // Dashboard
