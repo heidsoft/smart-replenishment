@@ -1,163 +1,110 @@
-// Prisma Schema - 智能补货助手数据模型
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
+  url      = env("DATABASE_URL")
 }
-
-// ==================== 用户相关 ====================
 
 model User {
-  id        String   @id @default(uuid())
+  id        Int      @id @default(autoincrement())
   phone     String   @unique
+  password  String
   name      String?
-  avatar    String?
-  status    Int      @default(1) // 1: 正常 0: 禁用
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  shops     Shop[]
+
+  products     Product[]
+  suppliers    Supplier[]
+  orders       Order[]
+  salesRecords SaleRecord[]
 }
 
-model Shop {
-  id        String   @id @default(uuid())
-  userId    String
+model Supplier {
+  id        Int      @id @default(autoincrement())
   name      String
-  address   String?
+  contact   String?
   phone     String?
-  status    Int      @default(1)
+  address   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+  userId    Int
   user      User     @relation(fields: [userId], references: [id])
-  products  Product[]
-  orders    Order[]
-  suppliers Supplier[]
-}
 
-// ==================== 商品相关 ====================
+  products Product[]
+  orders   Order[]
+}
 
 model Product {
-  id          String   @id @default(uuid())
-  shopId      String
+  id          Int      @id @default(autoincrement())
   name        String
-  barcode     String?  // 条形码
-  category    String?  // 分类
+  category    String?
   unit        String   @default("件")
-  price       Float    // 售价
-  costPrice   Float?   // 成本价
-  stock       Int      @default(0)  // 当前库存
-  minStock    Int      @default(10) // 最低库存阈值
-  maxStock    Int      @default(100) // 最高库存
-  status      Int      @default(1)
+  stock       Int      @default(0)
+  minStock    Int      @default(10)
+  maxStock    Int      @default(100)
+  price       Float    @default(0)
+  cost        Float    @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
-  shop        Shop           @relation(fields: [shopId], references: [id])
-  sales       SaleRecord[]
-  predictions Prediction[]
-}
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  supplierId  Int?
+  supplier    Supplier? @relation(fields: [supplierId], references: [id])
 
-// ==================== 销售记录 ====================
+  salesRecords SaleRecord[]
+  orderItems   OrderItem[]
+  aiSuggestions AISuggestion[]
+}
 
 model SaleRecord {
-  id        String   @id @default(uuid())
-  productId String
-  quantity  Int      // 销售数量
-  price     Float    // 实际售价
-  saleTime  DateTime @default(now()) // 销售时间
-  source    String?  // 来源：pos/manual
-  
+  id        Int      @id @default(autoincrement())
+  quantity  Int
+  salePrice Float
+  saleDate  DateTime @default(now())
+  createdAt DateTime @default(now())
+  productId Int
   product   Product  @relation(fields: [productId], references: [id])
-}
-
-// ==================== 预测相关 ====================
-
-model Prediction {
-  id             String   @id @default(uuid())
-  productId      String
-  predictDate    DateTime // 预测日期
-  predictSales   Float    // 预测销量
-  confidence     Float    // 置信度 0-1
-  actualSales    Int?     // 实际销量（后续填充）
-  model          String   @default("arima") // 预测模型
-  createdAt      DateTime @default(now())
-  
-  product        Product  @relation(fields: [productId], references: [id])
-  
-  @@index([productId, predictDate])
-}
-
-// ==================== 补货相关 ====================
-
-model ReplenishmentAdvice {
-  id           String   @id @default(uuid())
-  shopId       String
-  productId    String
-  adviceDate   DateTime @default(now()) // 建议日期
-  currentStock Int      // 当前库存
-  suggestQty   Int      // 建议补货量
-  reason       String?  // 建议原因
-  status       Int      @default(0) // 0: 待处理 1: 已下单 2: 已忽略
-  createdAt    DateTime @default(now())
-  
-  @@index([shopId, adviceDate])
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Order {
-  id           String   @id @default(uuid())
-  shopId       String
-  supplierId   String?
-  status       Int      @default(0) // 0: 待确认 1: 已发送 2: 已到货 3: 已取消
-  totalAmount  Float    @default(0)
-  remark       String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
-  shop         Shop              @relation(fields: [shopId], references: [id])
-  supplier     Supplier?         @relation(fields: [supplierId], references: [id])
-  items        OrderItem[]
+  id          Int      @id @default(autoincrement())
+  orderNo     String   @unique
+  status      String   @default("pending")
+  totalAmount Float    @default(0)
+  expectedDate DateTime?
+  arrivedDate  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  supplierId  Int
+  supplier    Supplier @relation(fields: [supplierId], references: [id])
+
+  items OrderItem[]
 }
 
 model OrderItem {
-  id        String   @id @default(uuid())
-  orderId   String
-  productId String
+  id        Int     @id @default(autoincrement())
   quantity  Int
   price     Float
-  productName String // 冗余存储
-  
-  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
 }
 
-// ==================== 供应商 ====================
-
-model Supplier {
-  id        String   @id @default(uuid())
-  shopId    String
-  name      String
-  phone     String?
-  address   String?
-  contact   String?  // 联系人
-  status    Int      @default(1)
-  createdAt DateTime @default(now())
-  
-  shop      Shop     @relation(fields: [shopId], references: [id])
-  orders    Order[]
-}
-
-// ==================== 微信相关 ====================
-
-model WechatUser {
-  id           String   @id @default(uuid())
-  userId       String   @unique
-  openid       String   @unique
-  unionid      String?  @unique
-  sessionKey   String?
+model AISuggestion {
+  id           Int      @id @default(autoincrement())
+  productId    Int
+  product      Product  @relation(fields: [productId], references: [id])
+  suggestQty   Int
+  reason       String
+  urgency      String   @default("medium")
+  predictedSales Int   @default(0)
+  confidence   Float    @default(0.5)
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
 }

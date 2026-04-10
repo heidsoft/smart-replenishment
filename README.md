@@ -1,79 +1,103 @@
-# 智能补货助手 MVP 开发指南
+# 智能补货助手
 
-## 📂 项目结构
+AI 驱动的零售补货解决方案，帮助小店老板轻松管理库存、补货提醒、销售分析。
+
+## 功能特性
+
+- 📦 **商品管理** - 添加/编辑/入库/库存预警
+- 📋 **订单管理** - 采购订单、发货跟踪、到货确认
+- 💰 **销售记录** - 快速录入销售、自动扣减库存
+- 🤖 **AI 智能补货** - 基于销量的智能补货建议
+- 📊 **数据看板** - 今日/本月收入、库存状态一览
+- 💬 **AI 助手** - 自然语言查询库存/销售/供应商
+
+## 技术栈
+
+### 后端
+- Node.js + Express + TypeScript
+- Prisma ORM + SQLite
+- JWT 认证
+
+### 前端
+- React 18 + Vite
+- Ant Design Mobile
+- React Router 6
+- Zustand 状态管理
+
+## 快速开始
+
+### 后端启动
+
+```bash
+cd backend
+npm install
+npx prisma generate
+npx prisma db push
+npm run dev
+```
+
+后端运行在 http://localhost:3000
+
+### 前端启动
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+前端运行在 http://localhost:5173
+
+### 测试账号
+
+- 手机号：13800138000
+- 验证码：123456
+
+## 项目结构
 
 ```
 smart-replenishment/
 ├── backend/
 │   ├── src/
-│   │   └── index.ts        # ✅ 主入口文件
+│   │   ├── routes/      # API 路由
+│   │   ├── middleware/  # 中间件
+│   │   └── index.ts     # 入口
 │   ├── prisma/
-│   │   └── schema.prisma   # ✅ 数据库模型
-│   └── package.json        # ✅ 依赖配置
+│   │   └── schema.prisma # 数据模型
+│   └── package.json
 ├── frontend/
-│   └── prototype.html      # ✅ UI 原型
-└── docs/
-    └── README.md           # ✅ 项目文档
+│   ├── src/
+│   │   ├── api/         # API 调用
+│   │   ├── pages/       # 页面组件
+│   │   ├── stores/      # 状态管理
+│   │   └── App.tsx      # 入口
+│   └── package.json
+└── README.md
 ```
 
-## ✅ 已完成
+## API 接口
 
-### A. 技术架构
-- [x] 技术栈选型：Node.js + Express + SQLite
-- [x] 项目结构设计
-- [x] 环境配置
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /api/auth/login | 登录 |
+| POST | /api/auth/register | 注册 |
+| GET | /api/products | 商品列表 |
+| POST | /api/products | 添加商品 |
+| GET | /api/orders | 订单列表 |
+| POST | /api/orders | 创建订单 |
+| GET | /api/ai/suggestions | 补货建议 |
+| POST | /api/ai/chat | AI 对话 |
+| GET | /api/dashboard/stats | 仪表盘数据 |
 
-### B. 数据模型
-- [x] Prisma Schema 设计
-- [x] 10+ 核心数据表
-- [x] 关系定义
+## 部署
 
-### C. 原型设计
-- [x] 移动端 UI 原型
-- [x] 4 个核心页面
-- [x] 交互逻辑
-
-### D. 快速验证
-- [x] 核心API 实现
-- [x] 6 个主要接口
-- [x] 内存数据库模拟
-
----
-
-## 🚀 快速启动
+Docker 部署（待完善）：
 
 ```bash
-cd /root/.openclaw/workspace/smart-replenishment/backend
-
-# 安装依赖
-npm install
-
-# 启动服务
-npm run dev
+docker build -t smart-replenishment .
+docker run -p 3000:3000 -p 5173:5173 smart-replenishment
 ```
 
-服务将运行在 http://localhost:3000
+## License
 
----
-
-## 📡 API 列表
-
-| 接口 | 方法 | 说明 |
-|------|------|------|
-| /api/stats | GET | 首页统计 |
-| /api/products | GET | 商品列表 |
-| /api/products | POST | 添加商品 |
-| /api/advice | GET | 补货建议 |
-| /api/orders | GET | 订单列表 |
-| /api/orders | POST | 创建订单 |
-| /api/predict/:id | GET | 销量预测 |
-
----
-
-**刘老师，MVP 开发框架已搭建完成！** 
-
-接下来需要：
-1. 部署测试环境
-2. 连接真实数据库
-3. 接入微信推送
-4. 完善 AI 预测算法
+MIT
