@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>智能补货助手 - MVP原型</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding:0; box-sizing:border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            max-width: 450px;
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .app-header {
+            background: linear-gradient(135deg, #FF6900 0%, #FF8C00 100%);
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .app-header h1 { font-size: 1.25rem; font-weight: 700; margin: 0; }
+        
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid #eee;
+            overflow-x: auto;
+        }
+        
+        .tab-item {
+            flex: 1;
+            text-align: center;
+            padding: 0.75rem;
+            color: #666;
+            font-size: 0.85rem;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        
+        .tab-item.active {
+            color: #FF6900;
+            border-bottom-color: #FF6900;
+            font-weight: 600;
+        }
+        
+        /* Content */
+        .app-content { padding: 1rem; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .card-title { font-weight: 600; font-size: 1rem; color: #333; }
+        
+        /* Product Item */
+        .product-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .product-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+            margin-right: 0.75rem;
+        }
+        
+        .product-info { flex: 1; }
+        .product-name { font-weight: 600; font-size: 0.9rem; }
+        .product-stock { font-size: 0.8rem; color: #999; }
+        
+        .stock-warning { color: #FF6900; }
+        .stock-ok { color: #10b981; }
+        
+        /* Advice Card */
+        .advice-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid #FF6900;
+        }
+        
+        .advice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .advice-product { font-weight: 600; font-size: 1rem; }
+        .advice-reason { font-size: 0.8rem; color: #666; margin-top: 0.25rem; }
+        .advice-qty {
+            background: #FFF3E0;
+            color: #FF6900;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        
+        .advice-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+        
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: #FF6900;
+            color: white;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #ddd;
+            color: #666;
+        }
+        
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #FF6900;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #999;
+        }
+        
+        /* Search */
+        .search-box {
+            background: white;
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .search-box input {
+            border: none;
+            outline: none;
+            flex: 1;
+            font-size: 0.9rem;
+        }
+        
+        .search-box i { color: #999; margin-right: 0.5rem; }
+        
+        /* Float Button */
+        .float-btn {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #FF6900 0%, #FF8C00 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(255, 105, 0, 0.4);
+            cursor: pointer;
+        }
+        
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 450px;
+            background: white;
+            display: flex;
+            border-top: 1px solid #eee;
+        }
+        
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 0.75rem;
+            color: #999;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+        
+        .nav-item.active { color: #FF6900; }
+        .nav-item i { font-size: 1.25rem; margin-bottom: 0.25rem; display: block; }
+        
+        /* Tags */
+        .tag {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .tag-warning { background: #FFF3E0; color: #FF6900; }
+        .tag-success { background: #E8F5E9; color: #10b981; }
+        .tag-danger { background: #FFEBEE; color: #ef4444; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="app-header">
+        <h1>🛒 智能补货助手</h1>
+    </div>
+    
+    <!-- Tab Navigation -->
+    <div class="tab-nav">
+        <div class="tab-item active" onclick="showTab('home')">首页</div>
+        <div class="tab-item" onclick="showTab('advice')">补货建议</div>
+        <div class="tab-item" onclick="showTab('inventory')">库存管理</div>
+        <div class="tab-item" onclick="showTab('orders')">订单</div>
+    </div>
+    
+    <!-- Content -->
+    <div class="app-content">
+        <!-- 首页 -->
+        <div id="home" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">5</div>
+                    <div class="stat-label">今日补货建议</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">库存预警</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">2</div>
+                    <div class="stat-label">待收货订单</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">156</div>
+                    <div class="stat-label">商品总数</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🔴 紧急补货</span>
+                    <span class="tag tag-danger">库存不足</span>
+                </div>
+                <div class="product-item">
+                    <div class="product-icon">🥤</div>
+                    <div class="product-info">
+                        <div class="product-name">可口可乐 500ml</div>
+                        <div class="product-stock stock-warning">库存: 3瓶 | 预计2天断货</div>
+                    </div>
+                    <span class="tag tag-warning">建议补24瓶</span>
+                </div>
+                <div class="product-item">
+                    <div class="product-icon">💧</div>
+                    <div class="product-info">
+                        <div class="product-name">农夫山泉</div>
+                        <div class="product-stock stock-warning">库存: 5瓶 | 预计3天断货</div>
+                    </div>
+                    <span class="tag tag-warning">建议补12瓶</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📊 本周销售趋势</span>
+                </div>
+                <p style="font-size:0.85rem; color:#666;">总销售额: ¥12,580</p>
+                <p style="font-size:0.85rem; color:#10b981;">↑ 较上周增长 15%</p>
+            </div>
+        </div>
+        
+        <!-- 补货建议 -->
+        <div id="advice" class="tab-content">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input placeholder="搜索商品...">
+            </div>
+            
+            <div class="advice-card">
+                <div class="advice-header">
+                    <div>
+                        <div class="advice-product">🥤 可口可乐 500ml</div>
+                        <div class="advice-reason">库存3瓶，预计2天断货，日均销量12瓶</div>
+                    </div>
+                    <div class="advice-qty">+24瓶</div>
+                </div>
+                <div class="advice-actions">
+                    <button class="btn-sm btn-primary" onclick="orderNow('cola')">一键下单</button>
+                    <button class="btn-sm btn-outline">调整数量</button>
+                    <button class="btn-sm btn-outline">忽略</button>
+                </div>
+            </div>
+            
+            <div class="advice-card">
+                <div class="advice-header">
+                    <div>
+                        <div class="advice-product">💧 农夫山泉</div>
+                        <div class="advice-reason">库存5瓶，预计3天断货，日均销量8瓶</div>
+                    </div>
+                    <div class="advice-qty">+12瓶</div>
+                </div>
+                <div class="advice-actions">
+                    <button class="btn-sm btn-primary" onclick="orderNow('water')">一键下单</button>
+                    <button class="btn-sm btn-outline">调整数量</button>
+                    <button class="btn-sm btn-outline">忽略</button>
+                </div>
+            </div>
+            
+            <div class="advice-card" style="border-left-color: #10b981;">
+                <div class="advice-header">
+                    <div>
+                        <div class="advice-product">🍫 士力架</div>
+                        <div class="advice-reason">库存15个，销量稳定，建议补货</div>
+                    </div>
+                    <div class="advice-qty" style="background:#E8F5E9;color:#10b981;">+10个</div>
+                </div>
+                <div class="advice-actions">
+                    <button class="btn-sm btn-primary">一键下单</button>
+                    <button class="btn-sm btn-outline">调整数量</button>
+                    <button class="btn-sm btn-outline">忽略</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 库存管理 -->
+        <div id="inventory" class="tab-content">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input placeholder="搜索商品名称/条码">
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">全部商品 (156)</span>
+                    <span style="color:#FF6900;font-size:0.85rem;">筛选</span>
+                </div>
+                
+                <div class="product-item">
+                    <div class="product-icon">🥤</div>
+                    <div class="product-info">
+                        <div class="product-name">可口可乐 500ml</div>
+                        <div class="product-stock stock-warning">库存: 3 | 最低: 10</div>
+                    </div>
+                    <span class="tag tag-danger">库存不足</span>
+                </div>
+                
+                <div class="product-item">
+                    <div class="product-icon">💧</div>
+                    <div class="product-info">
+                        <div class="product-name">农夫山泉</div>
+                        <div class="product-stock stock-warning">库存: 5 | 最低: 10</div>
+                    </div>
+                    <span class="tag tag-danger">库存不足</span>
+                </div>
+                
+                <div class="product-item">
+                    <div class="product-icon">🍫</div>
+                    <div class="product-info">
+                        <div class="product-name">士力架</div>
+                        <div class="product-stock stock-ok">库存: 15 | 最低: 5</div>
+                    </div>
+                    <span class="tag tag-success">正常</span>
+                </div>
+                
+                <div class="product-item">
+                    <div class="product-icon">🍿</div>
+                    <div class="product-info">
+                        <div class="product-name">乐事薯片</div>
+                        <div class="product-stock stock-ok">库存: 28 | 最低: 10</div>
+                    </div>
+                    <span class="tag tag-success">正常</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 订单 -->
+        <div id="orders" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">待收货 (2)</span>
+                </div>
+                
+                <div style="padding:1rem;background:#f9f9f9;border-radius:8px;margin-bottom:0.5rem;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
+                        <strong>订单 #20260319001</strong>
+                        <span class="tag tag-warning">待收货</span>
+                    </div>
+                    <div style="font-size:0.85rem;color:#666;">
+                        可口可乐 ×24, 农夫山泉 ×12<br>
+                        金额: ¥156.00
+                    </div>
+                    <div style="font-size:0.8rem;color:#999;margin-top:0.5rem;">
+                        供应商: 张三批发 | 预计明天上午到货
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">已完成</span>
+                </div>
+                
+                <div style="padding:1rem;background:#f9f9f9;border-radius:8px;margin-bottom:0.5rem;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
+                        <strong>订单 #20260318002</strong>
+                        <span class="tag tag-success">已完成</span>
+                    </div>
+                    <div style="font-size:0.85rem;color:#666;">
+                        红牛 ×6, 薯片 ×10
+                    </div>
+                    <div style="font-size:0.8rem;color:#999;margin-top:0.5rem;">
+                        2026-03-18 15:30
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Float Button -->
+    <div class="float-btn" onclick="showTab('inventory')">
+        <i class="fas fa-plus"></i>
+    </div>
+    
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="showTab('home')">
+            <i class="fas fa-home"></i>
+            首页
+        </div>
+        <div class="nav-item" onclick="showTab('advice')">
+            <i class="fas fa-lightbulb"></i>
+            补货
+        </div>
+        <div class="nav-item" onclick="showTab('inventory')">
+            <i class="fas fa-boxes"></i>
+            库存
+        </div>
+        <div class="nav-item" onclick="showTab('orders')">
+            <i class="fas fa-receipt"></i>
+            订单
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-user"></i>
+            我的
+        </div>
+    </div>
+    
+    <script>
+        function showTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-item').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-item').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabId).classList.add('active');
+            
+            // Update tab nav
+            const tabNames = ['home', 'advice', 'inventory', 'orders'];
+            const index = tabNames.indexOf(tabId);
+            if (index >= 0) {
+                document.querySelectorAll('.tab-item')[index].classList.add('active');
+            }
+            
+            // Update bottom nav
+            document.querySelectorAll('.nav-item')[index].classList.add('active');
+        }
+        
+        function orderNow(productId) {
+            alert('订单已发送给供应商！\n\n预计明天上午到货');
+        }
+    </script>
+</body>
+</html>
