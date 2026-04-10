@@ -102,3 +102,12 @@ export const aiApi = {
 export const dashboardApi = {
   getStats: () => api.get('/dashboard/stats'),
 };
+
+// Promotion
+export const promotionApi = {
+  listCoupons: () => api.get('/promotions/coupons'),
+  createCoupon: (data: any) => api.post('/promotions/coupons', data),
+  deleteCoupon: (id: number) => api.delete(`/promotions/coupons/${id}`),
+  claimCoupon: (id: number) => api.post(`/promotions/coupons/${id}/claim`),
+  getMyCoupons: () => api.get('/promotions/my-coupons'),
+};

@@ -15,7 +15,7 @@ export default function Layout({ children }: LayoutProps) {
     { key: '/checkout', title: '收银', icon: '🛒' },
     { key: '/products', title: '商品', icon: '📦' },
     { key: '/members', title: '会员', icon: '👥' },
-    { key: '/ai', title: 'AI助手', icon: '🤖' },
+    { key: '/promotions', title: '促销', icon: '🎫' },
   ];
 
   return (

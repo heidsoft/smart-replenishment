@@ -12,9 +12,14 @@ router.get('/stats', async (req: AuthRequest, res: Response) => {
 
     // 商品统计
     const totalProducts = await prisma.product.count({ where: { userId } });
-    const lowStockProducts = await prisma.product.count({
-      where: { userId, stock: { lt: prisma.product.fields.minStock } },
+
+    // 低库存商品（库存 < 最低库存）
+    const allProducts = await prisma.product.findMany({
+      where: { userId },
+      select: { id: true, name: true, stock: true, minStock: true },
     });
+    const lowStockList = allProducts.filter(p => p.stock < p.minStock);
+    const lowStockProducts = lowStockList.length;
 
     // 供应商统计
     const totalSuppliers = await prisma.supplier.count({ where: { userId } });
@@ -61,11 +66,8 @@ router.get('/stats', async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // 低库存商品列表
-    const lowStockList = await prisma.product.findMany({
-      where: { userId, stock: { lt: prisma.product.fields.minStock } },
-      take: 5,
-    });
+    // 低库存商品列表（取前5个）
+    const lowStockItems = lowStockList.slice(0, 5);
 
     res.json({
       totalProducts,
@@ -76,7 +78,7 @@ router.get('/stats', async (req: AuthRequest, res: Response) => {
       monthRevenue,
       pendingOrders,
       last7Days,
-      lowStockList,
+      lowStockList: lowStockItems,
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message });

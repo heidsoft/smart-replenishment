@@ -1,0 +1,211 @@
+.promotions-page {
+  min-height: calc(100vh - 100px);
+  background: #f5f5f5;
+}
+
+.section {
+  padding: 12px 16px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+}
+
+/* Coupon Card */
+.coupon-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.coupon-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.coupon-card .adm-card {
+  border: none;
+  border-radius: 12px;
+}
+
+.coupon-content {
+  display: flex;
+}
+
+.coupon-left {
+  width: 100px;
+  background: linear-gradient(135deg, #ff4d4f 0%, #ff6b6b 100%);
+  color: #fff;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+}
+
+.coupon-left::after {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: 0;
+  bottom: 0;
+  width: 16px;
+  background: radial-gradient(circle at left, transparent 8px, #f5f5f5 8px);
+  background-size: 16px 16px;
+}
+
+.coupon-value {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.coupon-value .yen {
+  font-size: 16px;
+}
+
+.coupon-value .折 {
+  font-size: 14px;
+}
+
+.coupon-condition {
+  font-size: 11px;
+  opacity: 0.9;
+  margin-top: 4px;
+}
+
+.coupon-right {
+  flex: 1;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.coupon-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.coupon-info {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.coupon-info .status {
+  color: #52c41a;
+}
+
+.coupon-info .status.expired {
+  color: #ff4d4f;
+}
+
+.coupon-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* My Coupon Expired State */
+.my-coupon.expired .coupon-left {
+  background: #ccc;
+}
+
+.my-coupon.expired .coupon-right {
+  opacity: 0.6;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  z-index: 200;
+}
+
+.modal-content {
+  width: 100%;
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  background: #fff;
+}
+
+.modal-header button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #999;
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 16px;
+}
+
+.form-item {
+  margin-bottom: 16px;
+}
+
+.form-item label {
+  display: block;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.form-item input,
+.form-item select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.form-item input:focus,
+.form-item select:focus {
+  border-color: #1677ff;
+}
