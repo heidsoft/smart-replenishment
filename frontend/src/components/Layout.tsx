@@ -12,9 +12,9 @@ export default function Layout({ children }: LayoutProps) {
 
   const tabs = [
     { key: '/dashboard', title: '首页', icon: '🏠' },
+    { key: '/checkout', title: '收银', icon: '🛒' },
     { key: '/products', title: '商品', icon: '📦' },
-    { key: '/orders', title: '订单', icon: '📋' },
-    { key: '/sales', title: '销售', icon: '💰' },
+    { key: '/members', title: '会员', icon: '👥' },
     { key: '/ai', title: 'AI助手', icon: '🤖' },
   ];
 

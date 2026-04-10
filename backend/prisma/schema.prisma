@@ -19,6 +19,7 @@ model User {
   suppliers    Supplier[]
   orders       Order[]
   salesRecords SaleRecord[]
+  members      Member[]
 }
 
 model Supplier {
@@ -68,6 +69,8 @@ model SaleRecord {
   product   Product  @relation(fields: [productId], references: [id])
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
+  memberId  Int?
+  member    Member?  @relation(fields: [memberId], references: [id])
 }
 
 model Order {
@@ -107,4 +110,33 @@ model AISuggestion {
   predictedSales Int   @default(0)
   confidence   Float    @default(0.5)
   createdAt    DateTime @default(now())
+}
+
+model Member {
+  id        Int      @id @default(autoincrement())
+  phone     String
+  name      String?
+  level     String   @default("normal")  // normal, silver, gold, diamond
+  points    Int      @default(0)
+  totalSpent Float   @default(0)
+  birthday  DateTime?
+  remark    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+
+  records   MemberPointRecord[]
+  salesRecords SaleRecord[]
+}
+
+model MemberPointRecord {
+  id        Int      @id @default(autoincrement())
+  type      String   // add, deduct
+  points    Int
+  balance   Int
+  remark    String?
+  createdAt DateTime @default(now())
+  memberId  Int
+  member    Member   @relation(fields: [memberId], references: [id])
 }

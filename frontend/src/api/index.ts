@@ -70,11 +70,26 @@ export const orderApi = {
 
 // Sales
 export const salesApi = {
-  list: (params?: { productId?: number; startDate?: string; endDate?: string }) =>
+  list: (params?: { productId?: number; memberId?: number; startDate?: string; endDate?: string }) =>
     api.get('/sales', { params }),
-  create: (data: { productId: number; quantity: number; salePrice: number }) =>
+  create: (data: { productId: number; quantity: number; salePrice: number; memberId?: number }) =>
     api.post('/sales', data),
   batchCreate: (records: any[]) => api.post('/sales/batch', { records }),
+  checkout: (data: { items: any[]; memberId?: number; discount?: number; remark?: string }) =>
+    api.post('/sales/checkout', data),
+};
+
+// Members
+export const memberApi = {
+  list: (params?: { keyword?: string; level?: string }) =>
+    api.get('/members', { params }),
+  get: (id: number) => api.get(`/members/${id}`),
+  create: (data: any) => api.post('/members', data),
+  update: (id: number, data: any) => api.put(`/members/${id}`, data),
+  delete: (id: number) => api.delete(`/members/${id}`),
+  findByPhone: (phone: string) => api.get(`/members/phone/${phone}`),
+  adjustPoints: (id: number, data: { type: string; points: number; remark?: string }) =>
+    api.post(`/members/${id}/points`, data),
 };
 
 // AI

@@ -10,6 +10,8 @@ import AddProduct from './pages/AddProduct';
 import Suppliers from './pages/Suppliers';
 import Orders from './pages/Orders';
 import Sales from './pages/Sales';
+import Checkout from './pages/Checkout';
+import Members from './pages/Members';
 import AI from './pages/AI';
 import Layout from './components/Layout';
 import { useAppStore } from './stores';
@@ -35,6 +37,8 @@ function App() {
             <Route path="suppliers" element={<Suppliers />} />
             <Route path="orders" element={<Orders />} />
             <Route path="sales" element={<Sales />} />
+            <Route path="checkout" element={<Checkout />} />
+            <Route path="members" element={<Members />} />
             <Route path="ai" element={<AI />} />
           </Route>
         </Routes>
