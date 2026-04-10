@@ -22,6 +22,7 @@ model User {
   members      Member[]
   coupons      Coupon[]
   couponClaims CouponClaim[]
+  deliveryCompanies DeliveryCompany[]
 }
 
 model Supplier {
@@ -89,6 +90,10 @@ model Order {
   supplierId  Int
   supplier    Supplier @relation(fields: [supplierId], references: [id])
 
+  trackingNumber String?
+  logisticsCompany String?
+  logisticsStatus String?
+
   items OrderItem[]
 }
 
@@ -118,7 +123,7 @@ model Member {
   id        Int      @id @default(autoincrement())
   phone     String
   name      String?
-  level     String   @default("normal")  // normal, silver, gold, diamond
+  level     String   @default("normal")
   points    Int      @default(0)
   totalSpent Float   @default(0)
   birthday  DateTime?
@@ -134,7 +139,7 @@ model Member {
 
 model MemberPointRecord {
   id        Int      @id @default(autoincrement())
-  type      String   // add, deduct
+  type      String
   points    Int
   balance   Int
   remark    String?
@@ -146,13 +151,13 @@ model MemberPointRecord {
 model Coupon {
   id        Int      @id @default(autoincrement())
   name      String
-  type      String   // discount(折扣), cash(代金券)
-  value     Float    // 折扣金额或折扣率
-  minAmount Float   @default(0)  // 最低消费金额
-  validDays Int      @default(30) // 有效期天数
-  totalCount Int    @default(100) // 发放总量
-  usedCount  Int     @default(0)  // 已领取数量
-  status    String   @default("active") // active, paused, expired
+  type      String
+  value     Float
+  minAmount Float   @default(0)
+  validDays Int      @default(30)
+  totalCount Int    @default(100)
+  usedCount  Int     @default(0)
+  status    String   @default("active")
   createdAt DateTime @default(now())
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
@@ -164,11 +169,52 @@ model CouponClaim {
   id        Int      @id @default(autoincrement())
   claimedAt DateTime @default(now())
   expiredAt DateTime
-  status    String   @default("unused") // unused, used, expired
+  status    String   @default("unused")
   usedAt    DateTime?
   createdAt DateTime @default(now())
   couponId  Int
   coupon    Coupon   @relation(fields: [couponId], references: [id])
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
+}
+
+model DeliveryCompany {
+  id        Int      @id @default(autoincrement())
+  name      String
+  code      String   @unique
+  website   String?
+  phone     String?
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+
+  shipments Shipment[]
+}
+
+model Shipment {
+  id        Int      @id @default(autoincrement())
+  orderNo   String
+  status    String   @default("pending")
+  expressNo String
+  createdAt DateTime @default(now())
+  shippedAt DateTime?
+  deliveredAt DateTime?
+  receiverName  String?
+  receiverPhone String?
+  receiverAddr String?
+  companyId  Int?
+  company    DeliveryCompany? @relation(fields: [companyId], references: [id])
+
+  tracks    ShipmentTrack[]
+}
+
+model ShipmentTrack {
+  id        Int      @id @default(autoincrement())
+  status    String
+  location  String?
+  time      DateTime
+  remark    String?
+  shipmentId Int
+  shipment  Shipment @relation(fields: [shipmentId], references: [id])
 }

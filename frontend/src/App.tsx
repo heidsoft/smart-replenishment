@@ -13,6 +13,7 @@ import Sales from './pages/Sales';
 import Checkout from './pages/Checkout';
 import Members from './pages/Members';
 import Promotions from './pages/Promotions';
+import Logistics from './pages/Logistics';
 import AI from './pages/AI';
 import Layout from './components/Layout';
 import { useAppStore } from './stores';
@@ -41,6 +42,7 @@ function App() {
             <Route path="checkout" element={<Checkout />} />
             <Route path="members" element={<Members />} />
             <Route path="promotions" element={<Promotions />} />
+            <Route path="logistics" element={<Logistics />} />
             <Route path="ai" element={<AI />} />
           </Route>
         </Routes>

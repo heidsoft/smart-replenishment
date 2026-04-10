@@ -111,3 +111,14 @@ export const promotionApi = {
   claimCoupon: (id: number) => api.post(`/promotions/coupons/${id}/claim`),
   getMyCoupons: () => api.get('/promotions/my-coupons'),
 };
+
+// Logistics
+export const logisticsApi = {
+  listCompanies: () => api.get('/logistics/companies'),
+  createCompany: (data: any) => api.post('/logistics/companies', data),
+  deleteCompany: (id: number) => api.delete(`/logistics/companies/${id}`),
+  listShipments: () => api.get('/logistics/shipments'),
+  createShipment: (data: any) => api.post('/logistics/shipments', data),
+  getShipmentTracks: (id: number) => api.get(`/logistics/shipments/${id}/tracks`),
+  updateShipmentStatus: (id: number, data: any) => api.post(`/logistics/shipments/${id}/update`, data),
+};
